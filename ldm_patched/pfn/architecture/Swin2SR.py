@@ -537,9 +537,9 @@ class BasicLayer(nn.Module):
                     qkv_bias=qkv_bias,
                     drop=drop,
                     attn_drop=attn_drop,
-                    drop_path=drop_path[i]
-                    if isinstance(drop_path, list)
-                    else drop_path,
+                    drop_path=(
+                        drop_path[i] if isinstance(drop_path, list) else drop_path
+                    ),
                     norm_layer=norm_layer,
                     pretrained_window_size=pretrained_window_size,
                 )

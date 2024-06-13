@@ -18,12 +18,14 @@ import modules.config
 import modules.sdxl_styles
 from modules.flags import Performance
 
-LANCZOS = (Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
+LANCZOS = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
 
 # Regexp compiled once. Matches entries with the following pattern:
 # <lora:some_lora:1>
 # <lora:aNotherLora:-1.6>
-LORAS_PROMPT_PATTERN = re.compile(r"(<lora:([^:]+):([+-]?(?:\d+(?:\.\d*)?|\.\d+))>)", re.X)
+LORAS_PROMPT_PATTERN = re.compile(
+    r"(<lora:([^:]+):([+-]?(?:\d+(?:\.\d*)?|\.\d+))>)", re.X
+)
 
 HASH_SHA256_LENGTH = 10
 
@@ -90,13 +92,31 @@ def resize_image(im, width, height, resize_mode=1):
         if ratio < src_ratio:
             fill_height = height // 2 - src_h // 2
             if fill_height > 0:
-                res.paste(resized.resize((width, fill_height), box=(0, 0, width, 0)), box=(0, 0))
-                res.paste(resized.resize((width, fill_height), box=(0, resized.height, width, resized.height)), box=(0, fill_height + src_h))
+                res.paste(
+                    resized.resize((width, fill_height), box=(0, 0, width, 0)),
+                    box=(0, 0),
+                )
+                res.paste(
+                    resized.resize(
+                        (width, fill_height),
+                        box=(0, resized.height, width, resized.height),
+                    ),
+                    box=(0, fill_height + src_h),
+                )
         elif ratio > src_ratio:
             fill_width = width // 2 - src_w // 2
             if fill_width > 0:
-                res.paste(resized.resize((fill_width, height), box=(0, 0, 0, height)), box=(0, 0))
-                res.paste(resized.resize((fill_width, height), box=(resized.width, 0, resized.width, height)), box=(fill_width + src_w, 0))
+                res.paste(
+                    resized.resize((fill_width, height), box=(0, 0, 0, height)),
+                    box=(0, 0),
+                )
+                res.paste(
+                    resized.resize(
+                        (fill_width, height),
+                        box=(resized.width, 0, resized.width, height),
+                    ),
+                    box=(fill_width + src_w, 0),
+                )
 
     return np.array(res)
 
@@ -115,7 +135,7 @@ def set_image_shape_ceil(im, shape_ceil):
 
     H_origin, W_origin, _ = im.shape
     H, W = H_origin, W_origin
-    
+
     for _ in range(256):
         current_shape_ceil = get_shape_ceil(H, W)
         if abs(current_shape_ceil - shape_ceil) < 0.1:
@@ -162,10 +182,10 @@ def join_prompts(*args, **kwargs):
         return ""
     if len(prompts) == 1:
         return prompts[0]
-    return ', '.join(prompts)
+    return ", ".join(prompts)
 
 
-def generate_temp_filename(folder='./outputs/', extension='png'):
+def generate_temp_filename(folder="./outputs/", extension="png"):
     current_time = datetime.datetime.now()
     date_string = current_time.strftime("%Y-%m-%d")
     time_string = current_time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -176,7 +196,7 @@ def generate_temp_filename(folder='./outputs/', extension='png'):
 
 
 def sha256(filename, use_addnet_hash=False, length=HASH_SHA256_LENGTH):
-    print(f"Calculating sha256 for {filename}: ", end='')
+    print(f"Calculating sha256 for {filename}: ", end="")
     if use_addnet_hash:
         with open(filename, "rb") as file:
             sha256_value = addnet_hash_safetensors(file)
@@ -216,7 +236,7 @@ def calculate_sha256(filename) -> str:
 
 
 def quote(text):
-    if ',' not in str(text) and '\n' not in str(text) and ':' not in str(text):
+    if "," not in str(text) and "\n" not in str(text) and ":" not in str(text):
         return text
 
     return json.dumps(text, ensure_ascii=False)
@@ -253,13 +273,13 @@ def unwrap_style_text_from_prompt(style_text, prompt):
             # two parts. This is an error, but we can't do anything about it.
             print(f"Unable to compare style text to prompt:\n{style_text}")
             print(f"Error: {e}")
-            return False, prompt, ''
+            return False, prompt, ""
 
         left_pos = stripped_prompt.find(left)
         right_pos = stripped_prompt.find(right)
         if 0 <= left_pos < right_pos:
-            real_prompt = stripped_prompt[left_pos + len(left):right_pos]
-            prompt = stripped_prompt.replace(left + real_prompt + right, '', 1)
+            real_prompt = stripped_prompt[left_pos + len(left) : right_pos]
+            prompt = stripped_prompt.replace(left + real_prompt + right, "", 1)
             if prompt.startswith(", "):
                 prompt = prompt[2:]
             if prompt.endswith(", "):
@@ -274,7 +294,7 @@ def unwrap_style_text_from_prompt(style_text, prompt):
                 prompt = prompt[:-2]
             return True, prompt, prompt
 
-    return False, prompt, ''
+    return False, prompt, ""
 
 
 def extract_original_prompts(style, prompt, negative_prompt):
@@ -290,13 +310,13 @@ def extract_original_prompts(style, prompt, negative_prompt):
         style.prompt, prompt
     )
     if not match_positive:
-        return False, prompt, negative_prompt, ''
+        return False, prompt, negative_prompt, ""
 
     match_negative, extracted_negative, _ = unwrap_style_text_from_prompt(
         style.negative_prompt, negative_prompt
     )
     if not match_negative:
-        return False, prompt, negative_prompt, ''
+        return False, prompt, negative_prompt, ""
 
     return True, extracted_positive, extracted_negative, real_prompt
 
@@ -305,23 +325,36 @@ def extract_styles_from_prompt(prompt, negative_prompt):
     extracted = []
     applicable_styles = []
 
-    for style_name, (style_prompt, style_negative_prompt) in modules.sdxl_styles.styles.items():
-        applicable_styles.append(PromptStyle(name=style_name, prompt=style_prompt, negative_prompt=style_negative_prompt))
+    for style_name, (
+        style_prompt,
+        style_negative_prompt,
+    ) in modules.sdxl_styles.styles.items():
+        applicable_styles.append(
+            PromptStyle(
+                name=style_name,
+                prompt=style_prompt,
+                negative_prompt=style_negative_prompt,
+            )
+        )
 
-    real_prompt = ''
+    real_prompt = ""
 
     while True:
         found_style = None
 
         for style in applicable_styles:
-            is_match, new_prompt, new_neg_prompt, new_real_prompt = extract_original_prompts(
-                style, prompt, negative_prompt
+            is_match, new_prompt, new_neg_prompt, new_real_prompt = (
+                extract_original_prompts(style, prompt, negative_prompt)
             )
             if is_match:
                 found_style = style
                 prompt = new_prompt
                 negative_prompt = new_neg_prompt
-                if real_prompt == '' and new_real_prompt != '' and new_real_prompt != prompt:
+                if (
+                    real_prompt == ""
+                    and new_real_prompt != ""
+                    and new_real_prompt != prompt
+                ):
                     real_prompt = new_real_prompt
                 break
 
@@ -332,17 +365,19 @@ def extract_styles_from_prompt(prompt, negative_prompt):
         extracted.append(found_style.name)
 
     # add prompt expansion if not all styles could be resolved
-    if prompt != '':
-        if real_prompt != '':
+    if prompt != "":
+        if real_prompt != "":
             extracted.append(modules.sdxl_styles.fooocus_expansion)
         else:
             # find real_prompt when only prompt expansion is selected
-            first_word = prompt.split(', ')[0]
-            first_word_positions = [i for i in range(len(prompt)) if prompt.startswith(first_word, i)]
+            first_word = prompt.split(", ")[0]
+            first_word_positions = [
+                i for i in range(len(prompt)) if prompt.startswith(first_word, i)
+            ]
             if len(first_word_positions) > 1:
-                real_prompt = prompt[:first_word_positions[-1]]
+                real_prompt = prompt[: first_word_positions[-1]]
                 extracted.append(modules.sdxl_styles.fooocus_expansion)
-                if real_prompt.endswith(', '):
+                if real_prompt.endswith(", "):
                     real_prompt = real_prompt[:-2]
 
     return list(reversed(extracted)), real_prompt, negative_prompt
@@ -387,39 +422,49 @@ def makedirs_with_log(path):
     try:
         os.makedirs(path, exist_ok=True)
     except OSError as error:
-        print(f'Directory {path} could not be created, reason: {error}')
+        print(f"Directory {path} could not be created, reason: {error}")
 
 
 def get_enabled_loras(loras: list, remove_none=True) -> list:
-    return [(lora[1], lora[2]) for lora in loras if lora[0] and (lora[1] != 'None' if remove_none else True)]
+    return [
+        (lora[1], lora[2])
+        for lora in loras
+        if lora[0] and (lora[1] != "None" if remove_none else True)
+    ]
 
 
-def parse_lora_references_from_prompt(prompt: str, loras: List[Tuple[AnyStr, float]], loras_limit: int = 5,
-                                      skip_file_check=False, prompt_cleanup=True, deduplicate_loras=True,
-                                      lora_filenames=None) -> tuple[List[Tuple[AnyStr, float]], str]:
+def parse_lora_references_from_prompt(
+    prompt: str,
+    loras: List[Tuple[AnyStr, float]],
+    loras_limit: int = 5,
+    skip_file_check=False,
+    prompt_cleanup=True,
+    deduplicate_loras=True,
+    lora_filenames=None,
+) -> tuple[List[Tuple[AnyStr, float]], str]:
     if lora_filenames is None:
         lora_filenames = []
 
     found_loras = []
-    prompt_without_loras = ''
-    cleaned_prompt = ''
+    prompt_without_loras = ""
+    cleaned_prompt = ""
 
-    for token in prompt.split(','):
+    for token in prompt.split(","):
         matches = LORAS_PROMPT_PATTERN.findall(token)
 
         if len(matches) == 0:
-            prompt_without_loras += token + ', '
+            prompt_without_loras += token + ", "
             continue
         for match in matches:
-            lora_name = match[1] + '.safetensors'
+            lora_name = match[1] + ".safetensors"
             if not skip_file_check:
                 lora_name = get_filname_by_stem(match[1], lora_filenames)
             if lora_name is not None:
                 found_loras.append((lora_name, float(match[2])))
-            token = token.replace(match[0], '')
-        prompt_without_loras += token + ', '
+            token = token.replace(match[0], "")
+        prompt_without_loras += token + ", "
 
-    if prompt_without_loras != '':
+    if prompt_without_loras != "":
         cleaned_prompt = prompt_without_loras[:-2]
 
     if prompt_cleanup:
@@ -428,7 +473,9 @@ def parse_lora_references_from_prompt(prompt: str, loras: List[Tuple[AnyStr, flo
     new_loras = []
     lora_names = [lora[0] for lora in loras]
     for found_lora in found_loras:
-        if deduplicate_loras and (found_lora[0] in lora_names or found_lora in new_loras):
+        if deduplicate_loras and (
+            found_lora[0] in lora_names or found_lora in new_loras
+        ):
             continue
         new_loras.append(found_lora)
 
@@ -460,41 +507,58 @@ def remove_performance_lora(filenames: list, performance: Performance | None):
 
 
 def cleanup_prompt(prompt):
-    prompt = re.sub(' +', ' ', prompt)
-    prompt = re.sub(',+', ',', prompt)
-    cleaned_prompt = ''
-    for token in prompt.split(','):
+    prompt = re.sub(" +", " ", prompt)
+    prompt = re.sub(",+", ",", prompt)
+    cleaned_prompt = ""
+    for token in prompt.split(","):
         token = token.strip()
-        if token == '':
+        if token == "":
             continue
-        cleaned_prompt += token + ', '
+        cleaned_prompt += token + ", "
     return cleaned_prompt[:-2]
 
 
 def apply_wildcards(wildcard_text, rng, i, read_wildcards_in_order) -> str:
     for _ in range(modules.config.wildcards_max_bfs_depth):
-        placeholders = re.findall(r'__([\w-]+)__', wildcard_text)
+        placeholders = re.findall(r"__([\w-]+)__", wildcard_text)
         if len(placeholders) == 0:
             return wildcard_text
 
-        print(f'[Wildcards] processing: {wildcard_text}')
+        print(f"[Wildcards] processing: {wildcard_text}")
         for placeholder in placeholders:
             try:
-                matches = [x for x in modules.config.wildcard_filenames if os.path.splitext(os.path.basename(x))[0] == placeholder]
-                words = open(os.path.join(modules.config.path_wildcards, matches[0]), encoding='utf-8').read().splitlines()
-                words = [x for x in words if x != '']
+                matches = [
+                    x
+                    for x in modules.config.wildcard_filenames
+                    if os.path.splitext(os.path.basename(x))[0] == placeholder
+                ]
+                words = (
+                    open(
+                        os.path.join(modules.config.path_wildcards, matches[0]),
+                        encoding="utf-8",
+                    )
+                    .read()
+                    .splitlines()
+                )
+                words = [x for x in words if x != ""]
                 assert len(words) > 0
                 if read_wildcards_in_order:
-                    wildcard_text = wildcard_text.replace(f'__{placeholder}__', words[i % len(words)], 1)
+                    wildcard_text = wildcard_text.replace(
+                        f"__{placeholder}__", words[i % len(words)], 1
+                    )
                 else:
-                    wildcard_text = wildcard_text.replace(f'__{placeholder}__', rng.choice(words), 1)
+                    wildcard_text = wildcard_text.replace(
+                        f"__{placeholder}__", rng.choice(words), 1
+                    )
             except:
-                print(f'[Wildcards] Warning: {placeholder}.txt missing or empty. '
-                      f'Using "{placeholder}" as a normal word.')
-                wildcard_text = wildcard_text.replace(f'__{placeholder}__', placeholder)
-            print(f'[Wildcards] {wildcard_text}')
+                print(
+                    f"[Wildcards] Warning: {placeholder}.txt missing or empty. "
+                    f'Using "{placeholder}" as a normal word.'
+                )
+                wildcard_text = wildcard_text.replace(f"__{placeholder}__", placeholder)
+            print(f"[Wildcards] {wildcard_text}")
 
-    print(f'[Wildcards] BFS stack overflow. Current text: {wildcard_text}')
+    print(f"[Wildcards] BFS stack overflow. Current text: {wildcard_text}")
     return wildcard_text
 
 
@@ -504,18 +568,21 @@ def get_image_size_info(image: np.ndarray, aspect_ratios: list) -> str:
         width, height = image.size
         ratio = round(width / height, 2)
         gcd = math.gcd(width, height)
-        lcm_ratio = f'{width // gcd}:{height // gcd}'
-        size_info = f'Image Size: {width} x {height}, Ratio: {ratio}, {lcm_ratio}'
+        lcm_ratio = f"{width // gcd}:{height // gcd}"
+        size_info = f"Image Size: {width} x {height}, Ratio: {ratio}, {lcm_ratio}"
 
-        closest_ratio = min(aspect_ratios, key=lambda x: abs(ratio - float(x.split('*')[0]) / float(x.split('*')[1])))
-        recommended_width, recommended_height = map(int, closest_ratio.split('*'))
+        closest_ratio = min(
+            aspect_ratios,
+            key=lambda x: abs(ratio - float(x.split("*")[0]) / float(x.split("*")[1])),
+        )
+        recommended_width, recommended_height = map(int, closest_ratio.split("*"))
         recommended_ratio = round(recommended_width / recommended_height, 2)
         recommended_gcd = math.gcd(recommended_width, recommended_height)
-        recommended_lcm_ratio = f'{recommended_width // recommended_gcd}:{recommended_height // recommended_gcd}'
+        recommended_lcm_ratio = f"{recommended_width // recommended_gcd}:{recommended_height // recommended_gcd}"
 
-        size_info = f'{width} x {height}, {ratio}, {lcm_ratio}'
-        size_info += f'\n{recommended_width} x {recommended_height}, {recommended_ratio}, {recommended_lcm_ratio}'
+        size_info = f"{width} x {height}, {ratio}, {lcm_ratio}"
+        size_info += f"\n{recommended_width} x {recommended_height}, {recommended_ratio}, {recommended_lcm_ratio}"
 
         return size_info
     except Exception as e:
-        return f'Error reading image: {e}'
+        return f"Error reading image: {e}"

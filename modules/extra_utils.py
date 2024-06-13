@@ -6,7 +6,7 @@ def makedirs_with_log(path):
     try:
         os.makedirs(path, exist_ok=True)
     except OSError as error:
-        print(f'Directory {path} could not be created, reason: {error}')
+        print(f"Directory {path} could not be created, reason: {error}")
 
 
 def get_files_from_folder(folder_path, extensions=None, name_filter=None):
@@ -21,7 +21,9 @@ def get_files_from_folder(folder_path, extensions=None, name_filter=None):
             relative_path = ""
         for filename in sorted(files, key=lambda s: s.casefold()):
             _, file_extension = os.path.splitext(filename)
-            if (extensions is None or file_extension.lower() in extensions) and (name_filter is None or name_filter in _):
+            if (extensions is None or file_extension.lower() in extensions) and (
+                name_filter is None or name_filter in _
+            ):
                 path = os.path.join(relative_path, filename)
                 filenames.append(path)
 

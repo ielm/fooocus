@@ -24,7 +24,7 @@ class ResBlock(nn.Module):
             nn.Conv2d(ch, ch, kernel_size=3, stride=1, padding=1),
             nn.SiLU(),
             nn.Conv2d(ch, ch, kernel_size=3, stride=1, padding=1),
-            nn.Dropout(0.1)
+            nn.Dropout(0.1),
         )
 
     def forward(self, x):
@@ -45,7 +45,7 @@ class ExtractBlock(nn.Module):
             nn.Conv2d(ch_out, ch_out, kernel_size=3, stride=1, padding=1),
             nn.SiLU(),
             nn.Conv2d(ch_out, ch_out, kernel_size=3, stride=1, padding=1),
-            nn.Dropout(0.1)
+            nn.Dropout(0.1),
         )
 
     def forward(self, x):
@@ -70,7 +70,9 @@ class InterposerModel(nn.Module):
             nn.BatchNorm2d(self.ch_mid),
             nn.SiLU(),
         )
-        self.tail = nn.Conv2d(self.ch_mid, self.ch_out, kernel_size=3, stride=1, padding=1)
+        self.tail = nn.Conv2d(
+            self.ch_mid, self.ch_out, kernel_size=3, stride=1, padding=1
+        )
 
     def forward(self, x):
         y = self.head(x)
@@ -79,7 +81,9 @@ class InterposerModel(nn.Module):
 
 
 vae_approx_model = None
-vae_approx_filename = os.path.join(path_vae_approx, 'xl-to-v1_interposer-v4.0.safetensors')
+vae_approx_filename = os.path.join(
+    path_vae_approx, "xl-to-v1_interposer-v4.0.safetensors"
+)
 
 
 def parse(x):
@@ -98,7 +102,7 @@ def parse(x):
         vae_approx_model = ModelPatcher(
             model=model,
             load_device=ldm_patched.modules.model_management.get_torch_device(),
-            offload_device=torch.device('cpu')
+            offload_device=torch.device("cpu"),
         )
         vae_approx_model.dtype = torch.float16 if fp16 else torch.float32
 

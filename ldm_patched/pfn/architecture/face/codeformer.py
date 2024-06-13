@@ -4,6 +4,7 @@ VQGAN code, adapted from the original created by the Unleashing Transformers aut
 https://github.com/samb-t/unleashing-transformers/blob/master/models/vqgan.py
 This version of the arch specifically was gathered from an old version of GFPGAN. If this is a problem, please contact me.
 """
+
 import math
 from typing import Optional
 

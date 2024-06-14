@@ -53,4 +53,7 @@ user_path_config-deprecated.txt
 /auth.json
 .DS_Store
 
+# ielm
 /temp
+/o
+/remote

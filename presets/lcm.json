@@ -47,6 +47,7 @@
     },
     "embeddings_downloads": {},
     "lora_downloads": {},
+
     "previous_default_models": [
         "juggernautXL_version8Rundiffusion.safetensors",
         "juggernautXL_version7Rundiffusion.safetensors",
@@ -54,4 +55,5 @@
         "juggernautXL_version6Rundiffusion.safetensors",
         "juggernautXL_v6Rundiffusion.safetensors"
     ]
+
 }

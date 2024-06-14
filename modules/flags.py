@@ -162,6 +162,11 @@ class OutputFormat(Enum):
 
 
 class PerformanceLoRA(Enum):
+    Q1000 = None
+    Q500 = None
+    Q400 = None
+    Q300 = None
+    Q200 = None
     QUALITY = None
     SPEED = None
     EXTREME_SPEED = "sdxl_lcm_lora.safetensors"
@@ -170,7 +175,12 @@ class PerformanceLoRA(Enum):
 
 
 class Steps(IntEnum):
-    QUALITY = 200
+    Q1000 = 1000
+    Q500 = 500
+    Q400 = 400
+    Q300 = 300
+    Q200 = 200
+    QUALITY = 100
     SPEED = 30
     EXTREME_SPEED = 8
     LIGHTNING = 4
@@ -178,6 +188,11 @@ class Steps(IntEnum):
 
 
 class StepsUOV(IntEnum):
+    Q1000 = 96
+    Q500 = 64
+    Q400 = 64
+    Q300 = 56
+    Q200 = 48
     QUALITY = 36
     SPEED = 18
     EXTREME_SPEED = 8
@@ -186,6 +201,11 @@ class StepsUOV(IntEnum):
 
 
 class Performance(Enum):
+    Q1000 = "1000X"
+    Q500 = "500X"
+    Q400 = "400X"
+    Q300 = "300X"
+    Q200 = "200X"
     QUALITY = "Quality"
     SPEED = "Speed"
     EXTREME_SPEED = "Extreme Speed"
